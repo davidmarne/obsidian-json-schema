@@ -1,85 +1,137 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { ErrorObject } from 'ajv';
+import { Editor, MarkdownView, Notice, Plugin, TAbstractFile, TFile, Vault, View, parseYaml } from 'obsidian';
+import { getMDAST, getMarkdownSchemaFileNameFromAst, validateFile } from 'src/validation';
+import { nodeToSchema } from 'src/schemas';
+import { ErrorDetailsView } from 'src/ErrorDetailsView';
+import { DEFAULT_SETTINGS, ObsidianJsonSchemaSettings, ObsidianSchemaSettingsTab } from 'src/ObsidianSchemaSettings';
+import { CreateNoteModal } from 'src/CreateNoteModal';
+import { SchemaCacheManager } from 'src/SchemaCacheManager';
 
-// Remember to rename these classes and interfaces!
+export const ERRORS_VIEW_TYPE_KEY = "example-view";
 
-interface MyPluginSettings {
-	mySetting: string;
+
+export interface SchemaCache {
+	[path: string]: object;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+interface ValidationState {
+	[path: string]: ErrorObject[];
 }
 
 export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+	settings: ObsidianJsonSchemaSettings;
+	state: ValidationState = {};
+	errorDetails: ErrorDetailsView;
+	schemaCache: SchemaCacheManager;
 
 	async onload() {
 		await this.loadSettings();
+		this.schemaCache = new SchemaCacheManager(this);
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		const statusBar = this.addStatusBarItem();
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new ObsidianSchemaSettingsTab(this.app, this));
+		this.registerView(ERRORS_VIEW_TYPE_KEY, (leaf) => {
+			this.errorDetails = new ErrorDetailsView(leaf, this)
+			return this.errorDetails;
 		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		const onState = () => {
+			// update status bar
+			const numLints = Object.values(this.state).reduce((a, b) => a += b.length, 0);
+			statusBar.setText(`${numLints} Schema Validation Errors`);
 
-		// This adds a simple command that can be triggered anywhere
+			// update error details panel if one exists
+			this.errorDetails?.onState();
+		}
+
+		const revalidateFile = async (file: TAbstractFile) => {
+			if (file instanceof TFile) {
+				const errors = await validateFile(this.schemaCache, this.app.vault, file, this.settings.schemasDirectory);
+				if (errors) {
+					this.state[file.path] = errors
+				} else {
+					delete this.state[file.path]
+				}
+				onState();
+			}
+
+		}
+
+		const cleanupFile = async (file: TAbstractFile) => {
+			if (file instanceof TFile && this.state[file.path]) {
+				delete this.state[file.path]
+				onState();
+			}
+		}
+
+		if (this.settings.autolint) {
+			this.app.vault.on("create", revalidateFile);
+			this.app.vault.on("modify", revalidateFile);
+			this.app.vault.on("rename", revalidateFile);
+			this.app.vault.on("delete", cleanupFile);
+			for (const tfile of this.app.vault.getMarkdownFiles()) {
+				revalidateFile(tfile)
+			}
+		}
+
+		const activateView = async () => {
+			this.app.workspace.detachLeavesOfType(ERRORS_VIEW_TYPE_KEY);
+		
+			await this.app.workspace.getRightLeaf(false).setViewState({
+			  type: ERRORS_VIEW_TYPE_KEY,
+			  active: true,
+			});
+		
+			this.app.workspace.revealLeaf(
+			  this.app.workspace.getLeavesOfType(ERRORS_VIEW_TYPE_KEY)[0]
+			);
+		  }
+
 		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
+			id: 'show_schema_validation_errors',
+			name: 'show schema validation errors',
+			callback: async () => {
+				await activateView();
 			}
 		});
-		// This adds an editor command that can perform some operation on the current editor instance
+
 		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
+			id: 'generate_mdast_schema_from_current_file',
+			name: 'generate schema from current file',
+			editorCallback: async (editor, ctx) => {
+				if (ctx.file) {
+					const mdast = await getMDAST(this.app.vault, ctx.file);
+					const schemaFileName = getMarkdownSchemaFileNameFromAst(this.settings.schemasDirectory, mdast);
+					if (schemaFileName !== null) {
+						const nts = nodeToSchema(mdast);
+						this.app.vault.create(schemaFileName, JSON.stringify(nts));
 					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
 				}
 			}
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
+		this.addCommand({
+			id: 'new_note_from_schema',
+			name: 'new note from schema',
+			callback: () => {
+				new CreateNoteModal(this.app).open();
+			}
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addCommand({
+			id: 'validate_schema_for_current_file',
+			name: 'validate schema for current file',
+			editorCallback(_, ctx) {
+				if (ctx.file) {
+					revalidateFile(ctx.file);
+				}
+			},
+		});
 	}
 
 	onunload() {
-
+		// TODO: cleanup file event listeners
 	}
 
 	async loadSettings() {
@@ -91,44 +143,4 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
-}

@@ -1,45 +1,110 @@
-# Obsidian Sample Plugin
+# Obsidian Json Schema
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+An Obsidian plugin to create & leverage [json-schemas](https://json-schema.org/) to enforce consistent note structure across your vault.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+This plugin demonstrates some of the basic functionality the plugin API can do.
+- Continuous validation of markdown structure, note properties, and note table of contents against json-schemas
+- Commands to create json-schemas from an existing note
+- Commands to create notes from a schema definition
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## Why?
 
-## First time developing plugins?
+In my personal vault, I have many templates and classes of notes that follow a similar structure. For example, I have a project note, a song note, a recipe note, etc. Generally most my notes of a given class share a structure but one or two notes do not conform. This lack of consistency can cause dataview queries to miss incorrectly formatted data, search regular expressions to miss incorrectly formatted data, and leads to an inconsistent experience across my notes.
 
-Quick starting guide for new plugin devs:
+Even worse, sometimes I want to change the structure for a given class of note, and now all the existing notes need to be updated to match the new structure. Currently, it is near impossible for me to locate which notes need to be updated and automating such a task is very difficult.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+By providing a static analysis tool that validates the structure of a given note, on can keep their vault consistent and clean.
 
-## Releasing new releases
+## Architecture
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+Obsidian JSON Schema leverages [json-schema](https://json-schema.org/) to define a schematic for your notes' structure. Obsidian JSON Schema works by transforming a note's content into an abstract syntax tree (AST) using [remark](https://github.com/remarkjs/remark) and [mdast](https://github.com/syntax-tree/mdast), then validates the AST using json-schema. 
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+Put simply, consumers of this plugin write json-schema which validates the AST of given note.
+
+For example, say i have a markdown note:
+
+```markdown
+## my cool doc
+```
+
+the plugin converts this markdown content to an AST with remark, which outputs:
+
+```json
+{
+    "type": "root",
+    "children": [
+        {
+            "type": "heading",
+            "depth": 2,
+            "children": [
+                {
+                    "type": "text",
+                    "value": "my cool doc",
+                }
+            ]
+        }
+    ]
+}
+```
+
+now i can write a json schema to validate that this note starts with a heading 1, which will trigger a validation warning because the input document uses a headding 2 
+
+```json
+{
+    "type": "object",
+    "title": "root node",
+    "properties": {
+        "type": {
+            "const": "root",
+            "type": "string"
+        },
+        "children": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "title": "heading node",
+                    "properties": {
+                        "type": {
+                            "const": "heading",
+                            "type": "string"
+                        },
+                        "depth": {
+                            "const": 2,
+                            "type": "number"
+                        },
+                        "children": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "object",
+                                    "title": "text node",
+                                    "properties": {
+                                        "type": {
+                                            "const": "text",
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
 
 ## Adding your plugin to the community plugin list
+
+TODO: This plugin is not currently added to the comu
 
 - Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
 - Publish an initial version.
@@ -48,49 +113,15 @@ Quick starting guide for new plugin devs:
 
 ## How to use
 
+This plugin is not currently added to the official obisidian community plugin list. To consume, one must manually clone this repo and add it to their `.obsidian/plugins` directory:
+
 - Clone this repo.
 - Make sure your NodeJS is at least v16 (`node --version`).
 - `npm i` or `yarn` to install dependencies.
 - `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
-
-If you have multiple URLs, you can also do:
-
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
+- open obsidian, enable community plugins, and enable this plugin
 
 ## API Documentation
 
-See https://github.com/obsidianmd/obsidian-api
+TODO: create api documentation
