@@ -104,7 +104,7 @@ now i can write a json schema to validate that this note starts with a heading 1
 
 ## Adding your plugin to the community plugin list
 
-TODO: This plugin is not currently added to the comu
+TODO: This plugin is not currently added to the community plugin list
 
 - Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
 - Publish an initial version.
@@ -121,6 +121,28 @@ This plugin is not currently added to the official obisidian community plugin li
 - `npm run dev` to start compilation in watch mode.
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
 - open obsidian, enable community plugins, and enable this plugin
+- add a `$schema`` property to a file name of your choice
+- run the `generate schema from current file` obsidian command (or create a json schema file manually)
+  - this does a best attempt at generating a schema, the generated json file must be hand edited to make any desired changes.
+- add the `$schema`` property to the same file for any notes that require the same schema
+- run the `show schema validation errors` command to view any schema errors
+
+## 1.0 Goals
+- validation errors view
+  - [ ] jump to location
+  - [ ] human readable paths
+- creating notes from a schema
+  - [ ] create empty note from schema
+  - [ ] leverage `react-json-schema-form` (or something similar) to prompt for inputs/unknowns when creating new notes from a schema
+- schema generator 
+  - [ ] option to generate schema for just properties section (rather than the whole markdown file)
+  - [ ] option to generate schema for just table of contents (rather than the whole markdown file)
+  - [ ] create a way to modify schemas from within obsidian
+    - [ ] provide a basic json editor
+    - [ ] leverage `jsonschema-editor-react` (or something similar) to provide a user friendly way to edit schemas
+- performance
+  - [ ] memoize ast generation and schema validation where possible
+  - [ ] investigate ways to cache/persist analysis results across sessions so all files do not need to be revalidated at startup
 
 ## API Documentation
 
