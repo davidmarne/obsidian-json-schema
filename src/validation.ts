@@ -22,7 +22,7 @@ export const getMDAST = async (vault: Vault, file: TFile): Promise<Root> => {
 
 export const getPropertiesFromAst = (ast: Root) => {
     const firstNode = ast.children[0];
-    if (firstNode['type'] === 'yaml' && 'value' in firstNode) {
+    if (firstNode && firstNode['type'] === 'yaml' && 'value' in firstNode) {
         const yaml = parseYaml(firstNode.value)
         return yaml
     }
@@ -32,8 +32,11 @@ export const getPropertiesFromAst = (ast: Root) => {
 
 export const getMarkdownSchemaFileNameFromAst = (path: string, ast: Root): string | null => {
     const props = getPropertiesFromAst(ast);
-    const fileName = props['markdown-schema'];
-    return fileName !== null ? [path,  fileName].join("/") : null
+    if (props !== null) {
+        const fileName = props['$schema'];
+        return fileName !== null ? [path,  fileName].join("/") : null;
+    }
+    return null;
 }
 
 export const getSchemasFromAst = async (schemaCache: SchemaCacheManager, ast: Root, schemasDirectory: string): Promise<object | null> => {
@@ -47,15 +50,13 @@ export const getSchemasFromAst = async (schemaCache: SchemaCacheManager, ast: Ro
 export const validateFile = async (schemaCache: SchemaCacheManager, vault: Vault, file: TFile, schemasDirectory: string)=> {
     const ast = await getMDAST(vault, file);
     const schema = await getSchemasFromAst(schemaCache, ast, schemasDirectory);
-    let errors: ErrorObject[] = [];
+
     if (schema) {
         const validate = ajv.compile(schema);
         validate(ast);
-        if (validate.errors) {
-            errors.concat(validate.errors)
-        }
+        return validate.errors;
     }
 
-    return errors;
+    return null;
 };
 

@@ -32,7 +32,7 @@ export const nodeToSchema = (astNode: Node) => {
                 // TODO: if yaml or json deserialize and schema that object
                 properties[k] = {
                     "const": v,
-                    "type": typeof v
+                    "type": v === null ? 'null' : typeof v
                 }
             }
         }
