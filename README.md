@@ -101,16 +101,6 @@ now i can write a json schema to validate that this note starts with a heading 1
 }
 ```
 
-
-## Adding your plugin to the community plugin list
-
-TODO: This plugin is not currently added to the community plugin list
-
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
 ## How to use
 
 This plugin is not currently added to the official obisidian community plugin list. To consume, one must manually clone this repo and add it to their `.obsidian/plugins` directory:
@@ -121,13 +111,13 @@ This plugin is not currently added to the official obisidian community plugin li
 - `npm run dev` to start compilation in watch mode.
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
 - open obsidian, enable community plugins, and enable this plugin
-- add a `$schema`` property to a file name of your choice
+- add a `$schema` property to a file name of your choice
 - run the `generate schema from current file` obsidian command (or create a json schema file manually)
   - this does a best attempt at generating a schema, the generated json file must be hand edited to make any desired changes.
-- add the `$schema`` property to the same file for any notes that require the same schema
+- add the `$schema` property to the same file for any notes that require the same schema
 - run the `show schema validation errors` command to view any schema errors
 
-## 1.0 Goals
+## WIP
 - validation
   - [x] ability to validate markdown structure with json-schema
   - [x] ability to validate properties structure with json-schema
@@ -135,9 +125,6 @@ This plugin is not currently added to the official obisidian community plugin li
   - [x] status bar shows validation error count
   - [ ] jump to location
   - [ ] human readable paths
-- creating notes from a schema
-  - [ ] create empty note from schema
-  - [ ] leverage `react-json-schema-form` (or something similar) to prompt for inputs/unknowns when creating new notes from a schema
 - schema generator 
   - [x] generate json schema from note
   - [ ] option to generate schema for just properties section (rather than the whole markdown file)
@@ -145,6 +132,9 @@ This plugin is not currently added to the official obisidian community plugin li
   - [ ] create a way to modify schemas from within obsidian
     - [ ] provide a basic json editor
     - [ ] leverage `jsonschema-editor-react` (or something similar) to provide a user friendly way to edit schemas
+- creating notes from a schema
+  - [ ] create empty note from schema
+  - [ ] leverage `react-json-schema-form` (or something similar) to prompt for inputs/unknowns when creating new notes from a schema
 - performance
   - [ ] memoize ast generation and schema validation where possible
   - [ ] investigate ways to cache/persist analysis results across sessions so all files do not need to be revalidated at startup
@@ -153,3 +143,5 @@ This plugin is not currently added to the official obisidian community plugin li
   - [x] Architecture overview in README
   - [ ] offical documentation with more advanced examples
 
+
+<a href="https://www.buymeacoffee.com/davemarne" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
