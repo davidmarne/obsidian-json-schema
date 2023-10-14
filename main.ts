@@ -65,10 +65,14 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 		}
 
 		if (this.settings.autolint) {
-			this.app.vault.on("create", revalidateFile);
-			this.app.vault.on("modify", revalidateFile);
-			this.app.vault.on("rename", revalidateFile);
-			this.app.vault.on("delete", cleanupFile);
+			this.registerEvent(this.app.vault.on("create", revalidateFile));
+			this.registerEvent(this.app.vault.on("modify", revalidateFile));
+			this.registerEvent(this.app.vault.on("rename", revalidateFile));
+			this.registerEvent(this.app.vault.on("delete", cleanupFile));
+			this.registerEvent(this.app.vault.on("create", this.schemaCache.reloadFile));
+			this.registerEvent(this.app.vault.on("modify", this.schemaCache.reloadFile));
+			this.registerEvent(this.app.vault.on("rename", this.schemaCache.reloadFile));
+			this.registerEvent(this.app.vault.on("delete", this.schemaCache.cleanupFile));
 			for (const tfile of this.app.vault.getMarkdownFiles()) {
 				revalidateFile(tfile)
 			}
@@ -89,7 +93,7 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'show_schema_validation_errors',
-			name: 'show schema validation errors',
+			name: 'Show schema validation errors',
 			callback: async () => {
 				await activateView();
 			}
@@ -97,7 +101,7 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'generate_mdast_schema_from_current_file',
-			name: 'generate schema from current file',
+			name: 'Generate schema from current file',
 			editorCallback: async (editor, ctx) => {
 				if (ctx.file) {
 					const mdast = await getMDAST(this.app.vault, ctx.file);
@@ -112,7 +116,7 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'validate_schema_for_current_file',
-			name: 'validate schema for current file',
+			name: 'Validate schema for current file',
 			editorCallback(_, ctx) {
 				if (ctx.file) {
 					revalidateFile(ctx.file);
@@ -122,7 +126,7 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 	}
 
 	onunload() {
-		// TODO: cleanup file event listeners
+		// no event listeners to cancel, registerEvents should handle disposal
 	}
 
 	async loadSettings() {

@@ -27,8 +27,8 @@ export class ObsidianSchemaSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Schema Directory')
-			.setDesc('Directory where json schemas for notes live')
+			.setName('Schema directory')
+			.setDesc('Directory where json schemas for notes live.')
 			.addSearch((search) => search
 				.setPlaceholder('Enter your schema directory')
 				.setValue(this.plugin.settings.schemasDirectory)

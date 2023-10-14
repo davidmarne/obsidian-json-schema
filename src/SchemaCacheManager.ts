@@ -8,10 +8,6 @@ export class SchemaCacheManager {
 
 	constructor(plugin: ObsidianJsonSchemaPlugin) {
 		this.plugin = plugin;
-		plugin.app.vault.on("create", this.reloadFile.bind(this));
-		plugin.app.vault.on("modify", this.reloadFile.bind(this));
-		plugin.app.vault.on("rename", this.reloadFile.bind(this));
-		plugin.app.vault.on("delete", this.cleanupFile.bind(this));
 	}
 
 	async getSchema(path: string) {
