@@ -13,7 +13,7 @@ In my personal vault, I have many templates and classes of notes that follow a s
 
 Even worse, sometimes I want to change the structure for a given class of note, and now all the existing notes need to be updated to match the new structure. Currently, it is near impossible for me to locate which notes need to be updated and automating such a task is very difficult.
 
-By providing a static analysis tool that validates the structure of a given note, on can keep their vault consistent and clean.
+By providing a static analysis tool that validates the structure of a given note, one can keep their vault consistent and clean.
 
 ## How it works
 
@@ -114,6 +114,8 @@ This plugin is not currently added to the official obisidian community plugin li
   - this does a best attempt at generating a schema, the generated json file must be hand edited to make any desired changes.
 - add the `$schema` property to the same file for any notes that require the same schema
 - run the `show schema validation errors` command to view any schema errors
+
+alternatively, one can test out this plugin with [BRAT](https://github.com/TfTHacker/obsidian42-brat)
 
 ## WIP
 - validation
