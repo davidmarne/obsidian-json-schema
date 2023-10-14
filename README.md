@@ -126,7 +126,6 @@ This plugin is not currently added to the official obisidian community plugin li
 - schema generator 
   - [x] generate json schema from note
   - [ ] option to generate schema for just properties section (rather than the whole markdown file)
-  - [ ] option to generate schema for just table of contents (rather than the whole markdown file)
 - performance
   - [ ] memoize ast generation and schema validation where possible
   - [ ] investigate ways to cache/persist analysis results across sessions so all files do not need to be revalidated at startup
