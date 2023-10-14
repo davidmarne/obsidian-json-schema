@@ -122,7 +122,8 @@ This plugin is not currently added to the official obisidian community plugin li
   - [x] view validation errors across all notes
   - [x] status bar shows validation error count
   - [ ] jump to location
-  - [ ] improve error path readability
+  - [ ] collapsable cards with error details
+  - [ ] improve error path readability by transforming property names to titles
 - schema generator 
   - [x] generate json schema from note
   - [ ] option to generate schema for just properties section (rather than the whole markdown file)
