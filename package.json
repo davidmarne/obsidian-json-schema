@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"lint": "eslint main.ts && eslint ./src/"
 	},
 	"keywords": [],
 	"author": "",
@@ -17,19 +18,28 @@
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
+		"eslint": "^8.51.0",
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
+		"@jsonforms/react": "^3.1.0",
+		"@rjsf/core": "^5.13.2",
+		"@rjsf/utils": "^5.13.2",
+		"@rjsf/validator-ajv8": "^5.13.2",
 		"@types/ajv": "^1.0.0",
 		"@types/mdast": "^4.0.1",
+		"@types/react": "^18.2.28",
+		"@types/react-dom": "^18.2.13",
 		"ajv": "^8.12.0",
 		"mdast": "^3.0.0",
 		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
 		"remark-frontmatter": "^5.0.0",
 		"remark-gfm": "^4.0.0",
 		"remark-parse": "^11.0.0",
+		"remark-stringify": "^11.0.0",
 		"remark-toc": "^9.0.0",
 		"unified": "^11.0.3",
 		"yaml": "^2.3.2"

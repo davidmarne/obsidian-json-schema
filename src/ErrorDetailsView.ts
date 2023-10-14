@@ -1,13 +1,13 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import { stringify } from 'yaml';
-import MyPlugin, { ERRORS_VIEW_TYPE_KEY } from 'main';
+import ObsidianJsonSchemaPlugin, { ERRORS_VIEW_TYPE_KEY } from 'main';
 
 
 
 export class ErrorDetailsView extends ItemView {
-	plugin: MyPlugin;
+	plugin: ObsidianJsonSchemaPlugin;
 
-	constructor(leaf: WorkspaceLeaf, plugin: MyPlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: ObsidianJsonSchemaPlugin) {
 		super(leaf);
 		this.plugin = plugin;
 	}
@@ -36,6 +36,7 @@ export class ErrorDetailsView extends ItemView {
 	}
 
 	async onClose() {
-		// Nothing to clean up.
+		const container = this.containerEl.children[1];
+		container.empty();
 	}
 }

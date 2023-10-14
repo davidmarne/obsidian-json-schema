@@ -1,12 +1,12 @@
 import { TAbstractFile, TFile } from 'obsidian';
-import MyPlugin, { SchemaCache } from 'main';
+import ObsidianJsonSchemaPlugin, { SchemaCache } from 'main';
 
 
 export class SchemaCacheManager {
 	state: SchemaCache = {};
-	plugin: MyPlugin;
+	plugin: ObsidianJsonSchemaPlugin;
 
-	constructor(plugin: MyPlugin) {
+	constructor(plugin: ObsidianJsonSchemaPlugin) {
 		this.plugin = plugin;
 		plugin.app.vault.on("create", this.reloadFile.bind(this));
 		plugin.app.vault.on("modify", this.reloadFile.bind(this));
@@ -25,12 +25,10 @@ export class SchemaCacheManager {
 	}
 
 	isSchemaFile(file: TAbstractFile) {
-		console.log("this", this)
 		return file.path.startsWith(this.plugin.settings.schemasDirectory);
 	}
 
 	async reloadFile(file: TAbstractFile) {
-		console.log("this", this)
 		if (file instanceof TFile && this.isSchemaFile(file)) {
 			const fileContent = await this.plugin.app.vault.read(file);
 			this.state[file.path] = JSON.parse(fileContent);

@@ -1,10 +1,9 @@
 import { ErrorObject } from 'ajv';
-import { Editor, MarkdownView, Notice, Plugin, TAbstractFile, TFile, Vault, View, parseYaml } from 'obsidian';
+import { Plugin, TAbstractFile, TFile } from 'obsidian';
 import { getMDAST, getMarkdownSchemaFileNameFromAst, validateFile } from 'src/validation';
 import { nodeToSchema } from 'src/schemas';
 import { ErrorDetailsView } from 'src/ErrorDetailsView';
 import { DEFAULT_SETTINGS, ObsidianJsonSchemaSettings, ObsidianSchemaSettingsTab } from 'src/ObsidianSchemaSettings';
-import { CreateNoteModal } from 'src/CreateNoteModal';
 import { SchemaCacheManager } from 'src/SchemaCacheManager';
 
 export const ERRORS_VIEW_TYPE_KEY = "example-view";
@@ -18,7 +17,7 @@ interface ValidationState {
 	[path: string]: ErrorObject[];
 }
 
-export default class MyPlugin extends Plugin {
+export default class ObsidianJsonSchemaPlugin extends Plugin {
 	settings: ObsidianJsonSchemaSettings;
 	state: ValidationState = {};
 	errorDetails: ErrorDetailsView;
@@ -77,16 +76,16 @@ export default class MyPlugin extends Plugin {
 
 		const activateView = async () => {
 			this.app.workspace.detachLeavesOfType(ERRORS_VIEW_TYPE_KEY);
-		
+
 			await this.app.workspace.getRightLeaf(false).setViewState({
-			  type: ERRORS_VIEW_TYPE_KEY,
-			  active: true,
+				type: ERRORS_VIEW_TYPE_KEY,
+				active: true,
 			});
-		
+
 			this.app.workspace.revealLeaf(
-			  this.app.workspace.getLeavesOfType(ERRORS_VIEW_TYPE_KEY)[0]
+				this.app.workspace.getLeavesOfType(ERRORS_VIEW_TYPE_KEY)[0]
 			);
-		  }
+		}
 
 		this.addCommand({
 			id: 'show_schema_validation_errors',
@@ -108,14 +107,6 @@ export default class MyPlugin extends Plugin {
 						this.app.vault.create(schemaFileName, JSON.stringify(nts));
 					}
 				}
-			}
-		});
-
-		this.addCommand({
-			id: 'new_note_from_schema',
-			name: 'new note from schema',
-			callback: () => {
-				new CreateNoteModal(this.app).open();
 			}
 		});
 

@@ -11,7 +11,7 @@ export const getYaml = (astNode: Literal) => {
 }
 
 export const nodeToSchema = (astNode: Node) => {
-    let properties: Properties = {};
+    const properties: Properties = {};
 
     if (astNode['type'] === 'yaml' && 'value' in astNode) {
         const content = (astNode as Yaml)['value'];
@@ -46,7 +46,7 @@ export const nodeToSchema = (astNode: Node) => {
 }
 
 export const yamlToSchema = (obj: object) => {
-    let properties: Properties = {};
+    const properties: Properties = {};
 
     for (const [k, v] of Object.entries(obj)) {
         properties[k] = {

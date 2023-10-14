@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from 'main';
+import ObsidianJsonSchemaPlugin from 'main';
 
 
 export interface ObsidianJsonSchemaSettings {
@@ -14,9 +14,9 @@ export const DEFAULT_SETTINGS: ObsidianJsonSchemaSettings = {
 
 
 export class ObsidianSchemaSettingsTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: ObsidianJsonSchemaPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ObsidianJsonSchemaPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

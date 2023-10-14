@@ -128,13 +128,18 @@ This plugin is not currently added to the official obisidian community plugin li
 - run the `show schema validation errors` command to view any schema errors
 
 ## 1.0 Goals
-- validation errors view
+- validation
+  - [x] ability to validate markdown structure with json-schema
+  - [x] ability to validate properties structure with json-schema
+  - [x] view validation errors across all notes
+  - [x] status bar shows validation error count
   - [ ] jump to location
   - [ ] human readable paths
 - creating notes from a schema
   - [ ] create empty note from schema
   - [ ] leverage `react-json-schema-form` (or something similar) to prompt for inputs/unknowns when creating new notes from a schema
 - schema generator 
+  - [x] generate json schema from note
   - [ ] option to generate schema for just properties section (rather than the whole markdown file)
   - [ ] option to generate schema for just table of contents (rather than the whole markdown file)
   - [ ] create a way to modify schemas from within obsidian
@@ -143,7 +148,8 @@ This plugin is not currently added to the official obisidian community plugin li
 - performance
   - [ ] memoize ast generation and schema validation where possible
   - [ ] investigate ways to cache/persist analysis results across sessions so all files do not need to be revalidated at startup
+- documentation
+  - [x] Create github repo
+  - [x] Architecture overview in README
+  - [ ] offical documentation with more advanced examples
 
-## API Documentation
-
-TODO: create api documentation

@@ -1,6 +1,6 @@
 
 import { TFile, Vault, parseYaml } from 'obsidian';
-import Ajv, { ErrorObject } from 'ajv';
+import Ajv from 'ajv';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
