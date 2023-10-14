@@ -4,10 +4,8 @@ An Obsidian plugin to create & leverage [json-schemas](https://json-schema.org/)
 
 ## Features
 
-This plugin demonstrates some of the basic functionality the plugin API can do.
-- Continuous validation of markdown structure, note properties, and note table of contents against json-schemas
-- Commands to create json-schemas from an existing note
-- Commands to create notes from a schema definition
+- Continuous validation of markdown structure & note properties against json-schemas
+- Commands to create json-schemas from an existing note or template
 
 ## Why?
 
@@ -17,9 +15,9 @@ Even worse, sometimes I want to change the structure for a given class of note, 
 
 By providing a static analysis tool that validates the structure of a given note, on can keep their vault consistent and clean.
 
-## Architecture
+## How it works
 
-Obsidian JSON Schema leverages [json-schema](https://json-schema.org/) to define a schematic for your notes' structure. Obsidian JSON Schema works by transforming a note's content into an abstract syntax tree (AST) using [remark](https://github.com/remarkjs/remark) and [mdast](https://github.com/syntax-tree/mdast), then validates the AST using json-schema. 
+Obsidian JSON Schema leverages [json-schema](https://json-schema.org/) to define a schematic for your note's structure. Obsidian JSON Schema works by transforming a note's content into an abstract syntax tree (AST) using [remark](https://github.com/remarkjs/remark) and [mdast](https://github.com/syntax-tree/mdast), then validates the AST using json-schema. 
 
 Put simply, consumers of this plugin write json-schema which validates the AST of given note.
 
@@ -124,24 +122,18 @@ This plugin is not currently added to the official obisidian community plugin li
   - [x] view validation errors across all notes
   - [x] status bar shows validation error count
   - [ ] jump to location
-  - [ ] human readable paths
+  - [ ] improve error path readability
 - schema generator 
   - [x] generate json schema from note
   - [ ] option to generate schema for just properties section (rather than the whole markdown file)
   - [ ] option to generate schema for just table of contents (rather than the whole markdown file)
-  - [ ] create a way to modify schemas from within obsidian
-    - [ ] provide a basic json editor
-    - [ ] leverage `jsonschema-editor-react` (or something similar) to provide a user friendly way to edit schemas
-- creating notes from a schema
-  - [ ] create empty note from schema
-  - [ ] leverage `react-json-schema-form` (or something similar) to prompt for inputs/unknowns when creating new notes from a schema
 - performance
   - [ ] memoize ast generation and schema validation where possible
   - [ ] investigate ways to cache/persist analysis results across sessions so all files do not need to be revalidated at startup
 - documentation
   - [x] Create github repo
   - [x] Architecture overview in README
-  - [ ] offical documentation with more advanced examples
+  - [ ] documentation with more advanced examples
 
 
 <a href="https://www.buymeacoffee.com/davemarne" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
