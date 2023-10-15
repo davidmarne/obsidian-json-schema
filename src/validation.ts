@@ -18,23 +18,32 @@ const compiler = unified()
 
 export const getMDAST = async (vault: Vault, file: TFile): Promise<Root> => {
     const data = await vault.read(file);
-    return compiler.parse(data);
+    const ast = compiler.parse(data);
+    if (ast.children.length > 0) {
+        const firstNode = ast.children[0];
+        if (firstNode && firstNode['type'] === 'yaml' && 'value' in firstNode) {
+            const yaml = parseYaml(firstNode.value)
+            firstNode['data'] = yaml
+        }
+    }
+    return ast;
 }
 
 export const getPropertiesFromAst = (ast: Root) => {
     const firstNode = ast.children[0];
-    if (firstNode && firstNode['type'] === 'yaml' && 'value' in firstNode) {
-        const yaml = parseYaml(firstNode.value)
-        return yaml
+    if (firstNode && firstNode['type'] === 'yaml' && 'data' in firstNode) {
+        return firstNode['data']
     }
     
     return null;
 }
 
+type JsonType = number | string | object | null;
+
 export const getMarkdownSchemaFileNameFromAst = (path: string, ast: Root): string | null => {
     const props = getPropertiesFromAst(ast);
-    if (props !== null) {
-        const fileName = props['$schema'];
+    if (props) {
+        const fileName = (props as Record<string, JsonType>)['$schema'] as string;
         return fileName !== null ? [path,  fileName].join("/") : null;
     }
     return null;
