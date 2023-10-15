@@ -1,12 +1,7 @@
-import { ItemView, TFile, WorkspaceLeaf, renderResults } from 'obsidian';
-import { createElement, createFactory } from 'react';
-import { createRoot } from 'react-dom/client';
+import { ItemView, TFile, WorkspaceLeaf } from 'obsidian';
 import ObsidianJsonSchemaPlugin, { ERRORS_VIEW_TYPE_KEY } from 'main';
-import { TreeView } from '@mui/x-tree-view/TreeView';
-import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { stringify } from 'yaml';
-import List from '@mui/material/List';
-import { ErrorSummary, ErrorsSummary, SchemaPathPartLocation, SchemaPathPartSelection } from './validation';
+import { SchemaPathPartSelection } from './validation';
 
 
 export class ErrorDetailsView extends ItemView {
@@ -51,7 +46,10 @@ export class ErrorDetailsView extends ItemView {
 				summary.createSpan({text: `${err.errorDetails.message} `})
 				const jump = summary.createEl("a", {text: "(jump)"})
 				this.registerDomEvent(jump, 'click', (e) => {
-					this.jumpToLocation(v.file, err.schemaPath.last()!.location);
+					const loc = err.schemaPath.last()?.location;
+					if (loc) {
+						this.jumpToLocation(v.file, loc);
+					}
 					e.preventDefault();
 				})
 				const pre = innerDetails.createEl("pre", {text: stringify(err.errorDetails)})
@@ -62,7 +60,7 @@ export class ErrorDetailsView extends ItemView {
 
 	async jumpToLocation(file: TFile, loc: SchemaPathPartSelection) {
 		await this.plugin.app.workspace.getLeaf(false).openFile(file);
-		this.plugin.app.workspace.activeEditor!.editor?.setSelection({
+		this.plugin.app.workspace.activeEditor?.editor?.setSelection({
 			ch: loc.end.char - 1,
 			line: loc.end.line - 1,
 		},{

@@ -1,4 +1,3 @@
-import { ErrorObject } from 'ajv';
 import { Plugin, TAbstractFile, TFile } from 'obsidian';
 import { ErrorsSummary, getMDAST, getMarkdownSchemaFileNameFromAst, validateFile } from 'src/validation';
 import { nodeToSchema } from 'src/schemas';

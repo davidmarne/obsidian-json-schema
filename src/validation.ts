@@ -91,7 +91,7 @@ export interface ErrorSummary {
 const validationToErrorSummary = (file: TFile, ast: object, errors: ErrorObject[]): ErrorsSummary => {
     const errorSummaries: ErrorSummary[] = []
     for (const err of errors) {
-        let currentNode = ast as Record<string, any> | Record<string, object>[];
+        let currentNode = ast as Record<string, object | string> | Record<string, object | string>[];
         const schemaParts: SchemaPathPart[] = []
         const path = err.instancePath.split("/")
         path.remove('')
@@ -114,7 +114,7 @@ const validationToErrorSummary = (file: TFile, ast: object, errors: ErrorObject[
                     }, 
                 }
                 schemaParts.push(schemaPart)
-                currentNode = currentNode[part] as Record<string, object> | Record<string, object>[];
+                currentNode = currentNode[part] as Record<string, object | string> | Record<string, object | string>[];
             }
         }
         errorSummaries.push({errorDetails: err, schemaPath: schemaParts})
