@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-mdast-json-schema",
-	"version": "0.0.1",
+	"version": "0.0.5",
 	"description": "An Obsidian plugin to create & leverage [json-schemas to enforce consistent note structure across your vault.",
 	"main": "main.js",
 	"scripts": {
