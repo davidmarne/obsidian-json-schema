@@ -1,10 +1,11 @@
 
 import { TFile, Vault, parseYaml } from 'obsidian';
-import Ajv from 'ajv';
+import Ajv, { ErrorObject } from 'ajv';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import {unified} from 'unified';
+import {Position} from 'unist';
 import { Root } from 'mdast';
 import { SchemaCacheManager } from 'src/SchemaCacheManager';
 
@@ -54,9 +55,73 @@ export const validateFile = async (schemaCache: SchemaCacheManager, vault: Vault
     if (schema) {
         const validate = ajv.compile(schema);
         validate(ast);
-        return validate.errors;
+        if (validate.errors) {
+            return validationToErrorSummary(file, ast, validate.errors);
+        }
     }
 
     return null;
 };
 
+export interface SchemaPathPartSelection {
+    start: SchemaPathPartLocation,
+    end: SchemaPathPartLocation,
+}
+
+export interface SchemaPathPartLocation {
+    char: number,
+    line: number,
+}
+
+export interface SchemaPathPart {
+    schemaPathRef: string,
+    location: SchemaPathPartSelection
+}
+
+export interface ErrorsSummary {
+    file: TFile,
+    errors: ErrorSummary[]
+}
+
+export interface ErrorSummary {
+    errorDetails: ErrorObject,
+    schemaPath: SchemaPathPart[]
+}
+
+const validationToErrorSummary = (file: TFile, ast: object, errors: ErrorObject[]): ErrorsSummary => {
+    const errorSummaries: ErrorSummary[] = []
+    for (const err of errors) {
+        let currentNode = ast as Record<string, any> | Record<string, object>[];
+        const schemaParts: SchemaPathPart[] = []
+        const path = err.instancePath.split("/")
+        path.remove('')
+        for (const part of path) {
+            if (currentNode instanceof Array) {
+                currentNode = currentNode[+part]
+            } else {
+                const mdPosition = currentNode['position'] as Position
+                const schemaPart: SchemaPathPart = {
+                    schemaPathRef: part,
+                    location: {
+                        start: {
+                            char: mdPosition.start.column,
+                            line: mdPosition.start.line,
+                        },
+                        end: {
+                            char: mdPosition.end.column,
+                            line: mdPosition.end.line,
+                        }
+                    }, 
+                }
+                schemaParts.push(schemaPart)
+                currentNode = currentNode[part] as Record<string, object> | Record<string, object>[];
+            }
+        }
+        errorSummaries.push({errorDetails: err, schemaPath: schemaParts})
+    }
+
+    return {
+        file: file,
+        errors: errorSummaries,
+    }
+}

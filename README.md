@@ -123,8 +123,8 @@ alternatively, one can test out this plugin with [BRAT](https://github.com/TfTHa
   - [x] ability to validate properties structure with json-schema
   - [x] view validation errors across all notes
   - [x] status bar shows validation error count
-  - [ ] jump to location
-  - [ ] collapsable cards with error details
+  - [x] jump to location
+  - [x] collapsable cards with error details
   - [ ] improve error path readability by transforming property names to titles
 - schema generator 
   - [x] generate json schema from note

@@ -1,6 +1,6 @@
 import { ErrorObject } from 'ajv';
 import { Plugin, TAbstractFile, TFile } from 'obsidian';
-import { getMDAST, getMarkdownSchemaFileNameFromAst, validateFile } from 'src/validation';
+import { ErrorsSummary, getMDAST, getMarkdownSchemaFileNameFromAst, validateFile } from 'src/validation';
 import { nodeToSchema } from 'src/schemas';
 import { ErrorDetailsView } from 'src/ErrorDetailsView';
 import { DEFAULT_SETTINGS, ObsidianJsonSchemaSettings, ObsidianSchemaSettingsTab } from 'src/ObsidianSchemaSettings';
@@ -14,7 +14,7 @@ export interface SchemaCache {
 }
 
 interface ValidationState {
-	[path: string]: ErrorObject[];
+	[path: string]: ErrorsSummary;
 }
 
 export default class ObsidianJsonSchemaPlugin extends Plugin {
@@ -37,7 +37,7 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 
 		const onState = () => {
 			// update status bar
-			const numLints = Object.values(this.state).reduce((a, b) => a += b.length, 0);
+			const numLints = Object.values(this.state).reduce((a, b) => a += b.errors.length, 0);
 			statusBar.setText(`${numLints} Schema Validation Errors`);
 
 			// update error details panel if one exists
@@ -65,14 +65,14 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 		}
 
 		if (this.settings.autolint) {
-			this.registerEvent(this.app.vault.on("create", revalidateFile));
-			this.registerEvent(this.app.vault.on("modify", revalidateFile));
-			this.registerEvent(this.app.vault.on("rename", revalidateFile));
-			this.registerEvent(this.app.vault.on("delete", cleanupFile));
-			this.registerEvent(this.app.vault.on("create", this.schemaCache.reloadFile));
-			this.registerEvent(this.app.vault.on("modify", this.schemaCache.reloadFile));
-			this.registerEvent(this.app.vault.on("rename", this.schemaCache.reloadFile));
-			this.registerEvent(this.app.vault.on("delete", this.schemaCache.cleanupFile));
+			this.registerEvent(this.app.vault.on("create", revalidateFile.bind(this)));
+			this.registerEvent(this.app.vault.on("modify", revalidateFile.bind(this)));
+			this.registerEvent(this.app.vault.on("rename", revalidateFile.bind(this)));
+			this.registerEvent(this.app.vault.on("delete", cleanupFile.bind(this)));
+			this.registerEvent(this.app.vault.on("create", this.schemaCache.reloadFile.bind(this.schemaCache)));
+			this.registerEvent(this.app.vault.on("modify", this.schemaCache.reloadFile.bind(this.schemaCache)));
+			this.registerEvent(this.app.vault.on("rename", this.schemaCache.reloadFile.bind(this.schemaCache)));
+			this.registerEvent(this.app.vault.on("delete", this.schemaCache.cleanupFile.bind(this.schemaCache)));
 			for (const tfile of this.app.vault.getMarkdownFiles()) {
 				revalidateFile(tfile)
 			}
