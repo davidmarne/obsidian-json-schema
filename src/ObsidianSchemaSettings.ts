@@ -9,7 +9,7 @@ export interface ObsidianJsonSchemaSettings {
 
 export const DEFAULT_SETTINGS: ObsidianJsonSchemaSettings = {
 	schemasDirectory: 'schemas' ,
-	autolint: true,
+	autolint: false,
 }
 
 

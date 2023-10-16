@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-json-schema",
 	"name": "obsidian json-schema",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"minAppVersion": "0.15.0",
 	"description": "Validates your md note structure against a json schema",
 	"author": "Obsidian",

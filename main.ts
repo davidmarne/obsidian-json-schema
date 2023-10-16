@@ -44,16 +44,19 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 		}
 
 		const revalidateFile = async (file: TAbstractFile) => {
-			if (file instanceof TFile) {
-				const errors = await validateFile(this.schemaCache, this.app.vault, file, this.settings.schemasDirectory);
-				if (errors) {
-					this.state[file.path] = errors
-				} else {
-					delete this.state[file.path]
-				}
-				onState();
+			if (file instanceof TFile && (this.settings.autolint || this.state[file.path])) {
+				validate(file)
 			}
+		}
 
+		const validate = async (file: TFile) => {
+			const errors = await validateFile(this.schemaCache, this.app.vault, file, this.settings.schemasDirectory);
+			if (errors) {
+				this.state[file.path] = errors
+			} else {
+				delete this.state[file.path]
+			}
+			onState();
 		}
 
 		const cleanupFile = async (file: TAbstractFile) => {
@@ -63,17 +66,19 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 			}
 		}
 
+		// listen to file change events to update the schema cache or revalidate any md files
+		this.registerEvent(this.app.vault.on("create", this.schemaCache.reloadFile.bind(this.schemaCache)));
+		this.registerEvent(this.app.vault.on("modify", this.schemaCache.reloadFile.bind(this.schemaCache)));
+		this.registerEvent(this.app.vault.on("rename", this.schemaCache.reloadFile.bind(this.schemaCache)));
+		this.registerEvent(this.app.vault.on("delete", this.schemaCache.cleanupFile.bind(this.schemaCache)));
+		this.registerEvent(this.app.vault.on("create", revalidateFile.bind(this)));
+		this.registerEvent(this.app.vault.on("modify", revalidateFile.bind(this)));
+		this.registerEvent(this.app.vault.on("rename", revalidateFile.bind(this)));
+		this.registerEvent(this.app.vault.on("delete", cleanupFile.bind(this)));
+		
 		if (this.settings.autolint) {
-			this.registerEvent(this.app.vault.on("create", revalidateFile.bind(this)));
-			this.registerEvent(this.app.vault.on("modify", revalidateFile.bind(this)));
-			this.registerEvent(this.app.vault.on("rename", revalidateFile.bind(this)));
-			this.registerEvent(this.app.vault.on("delete", cleanupFile.bind(this)));
-			this.registerEvent(this.app.vault.on("create", this.schemaCache.reloadFile.bind(this.schemaCache)));
-			this.registerEvent(this.app.vault.on("modify", this.schemaCache.reloadFile.bind(this.schemaCache)));
-			this.registerEvent(this.app.vault.on("rename", this.schemaCache.reloadFile.bind(this.schemaCache)));
-			this.registerEvent(this.app.vault.on("delete", this.schemaCache.cleanupFile.bind(this.schemaCache)));
 			for (const tfile of this.app.vault.getMarkdownFiles()) {
-				revalidateFile(tfile)
+				validate(tfile)
 			}
 		}
 
@@ -118,7 +123,17 @@ export default class ObsidianJsonSchemaPlugin extends Plugin {
 			name: 'Validate schema for current file',
 			editorCallback(_, ctx) {
 				if (ctx.file) {
-					revalidateFile(ctx.file);
+					validate(ctx.file);
+				}
+			},
+		});
+
+		this.addCommand({
+			id: 'validate_schema_for_all_files',
+			name: 'Validate schema for all files',
+			callback: () => {
+				for (const tfile of this.app.vault.getMarkdownFiles()) {
+					validate(tfile)
 				}
 			},
 		});
