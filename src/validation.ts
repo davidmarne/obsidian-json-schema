@@ -1,15 +1,15 @@
 
 import { TFile, Vault, parseYaml } from 'obsidian';
-import Ajv, { ErrorObject } from 'ajv';
+import Ajv2020, { ErrorObject } from 'ajv/dist/2020';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import {unified} from 'unified';
-import {Position} from 'unist';
+import { Position } from 'unist';
 import { Root } from 'mdast';
 import { SchemaCacheManager } from 'src/SchemaCacheManager';
 
-const ajv = new Ajv();
+const ajv = new Ajv2020();
 
 const compiler = unified()
     .use(remarkParse)
@@ -108,7 +108,7 @@ const validationToErrorSummary = (file: TFile, ast: object, errors: ErrorObject[
             if (currentNode instanceof Array) {
                 currentNode = currentNode[+part]
             } else {
-                const mdPosition = currentNode['position'] as Position
+                const mdPosition = currentNode['position'] as Position;
                 const schemaPart: SchemaPathPart = {
                     schemaPathRef: part,
                     location: {
